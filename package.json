@@ -1,0 +1,48 @@
+{
+	"name": "ahk",
+	"version": "0.0.0",
+	"description": "AutoHotKey as a native node module",
+	"keywords": [
+		"AutoHotKey",
+		"automation", "hotkeys",
+		"shortcuts", "scripting", "sendkeys",
+		"keyboard", "mouse", "windows"
+	],
+	"license": "GPL",
+	
+	"homepage": "http://github.com/1j01/ahk.js/",
+	"bugs": {
+		"url": "https://github.com/1j01/ahk.js/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/1j01/ahk.js.git"
+	},
+	
+	"os": ["win32"],
+	"engines": {
+		"node": ">=0.10.20"
+	},
+	
+	"main": "main.coffee",
+	"preferGlobal": true,
+	
+	"devDependencies": {
+		"coffee-script": "~1.6.3"
+	},
+	"scripts": {
+		"prepublish": "coffee -o lib/ -c src/",
+		"watch": "coffee -w -o lib/ -c src/",
+		"test-pollution": "coffee test/test-pollution.coffee",
+		"test-script": "ahk example-scripts/test.coffee",
+		"addon.build": "node-gyp build",
+		"addon.rebuild": "node-gyp rebuild",
+		"addon.configure": "node-gyp configure"
+	},
+	"directories": {
+		"example": "example-scripts",
+		"bin": "bin"
+	},
+	"private": true,
+	"gypfile": true
+}

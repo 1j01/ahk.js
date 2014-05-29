@@ -8,7 +8,12 @@
 		"shortcuts", "scripting", "sendkeys",
 		"keyboard", "mouse", "windows"
 	],
-	"license": "GPL",
+	
+	"author": {
+		"name": "Isaiah Odhner",
+		"url": "http://1j01.github.io/"
+	},
+	"license": "GPL-2.0+",
 	
 	"homepage": "http://github.com/1j01/ahk.js/",
 	"bugs": {
@@ -24,17 +29,20 @@
 		"node": ">=0.10.20"
 	},
 	
-	"main": "main.coffee",
+	"main": "./lib/AutoHotKey",
 	"preferGlobal": true,
 	
+	"dependencies": {},
 	"devDependencies": {
 		"coffee-script": "~1.6.3"
 	},
 	"scripts": {
+		"start": "node ./bin/ahk",
 		"prepublish": "coffee -o lib/ -c src/",
 		"watch": "coffee -w -o lib/ -c src/",
 		"test-pollution": "coffee test/test-pollution.coffee",
-		"test-script": "ahk example-scripts/test.coffee",
+		"test-send-input": "coffee test/test-send-input.coffee",
+		"test-hotkeys": "coffee test/test-hotkeys.coffee",
 		"addon.build": "node-gyp build",
 		"addon.rebuild": "node-gyp rebuild",
 		"addon.configure": "node-gyp configure"

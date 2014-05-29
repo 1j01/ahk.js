@@ -125,8 +125,8 @@ keys =
 	"]": 221
 	"'": 222
 
-for c in ['A'..'Z']
-	keys[c] = c.charCodeAt(0)
+for i in [65..90]
+	keys[String.fromCharCode(i)] = i
 
 for n in [1..12]
 	keys["F"+n] = 111 + n
@@ -141,9 +141,34 @@ for m in modifiers
 	pollution[m] = m + "+"
 
 for k of keys
-	pollution[k] ?= keys[k]
-	#pollution[k] ?= k
+	#pollution[k] ?= keys[k]
+	pollution[k] ?= k
+
+parseHotKey = (str)->
+	modifiers = []
+	str = str.replace /\+$/g, ""
+	key = str.replace /(Ctrl|Shift|Alt|Win)\+/g, (match)->
+		modifier_key = match.slice(0, -1) # chop off the +
+		modifiers.push modifier_key
+		""
+	keycode = keys[key] #? parseInt(key)
+	
+	{key, keycode, modifiers}
 
 
+casey = (c)->
+	# Make a class somewhat loosely cased
+	# The class's properties should be camelCased
+	for key, val of c::
+		# UpperCamelCase
+		c::[key[0].toUpperCase() + key.slice(1)] = val
+		# lowercase
+		c::[key.toLowerCase()] = val
 
-module.exports = {pollution, keys, modifiers}
+dump = (pollution, namespace = global)->
+	# Dump an object's properties into the global namespace (or another)
+	for k of pollution
+		namespace[k] = pollution[k]
+
+
+module.exports = {pollution, keys, modifiers, parseHotKey, dump, casey}

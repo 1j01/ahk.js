@@ -1,27 +1,22 @@
 
-{pollution, keys} = require '../lib/pollution'
+{pollution, keys, parseHotKey, dump} = require '../lib/pollution'
+assert = require 'assert'
 
-for k of pollution
-	global[k] = pollution[k]
-
-parse = (str)->
-	modifiers = []
-	key = str.replace /(Ctrl|Shift|Alt|Win)\+/g, (match)->
-		modifier = match.slice(0, -1) # chop off the +
-		modifiers.push modifier
-		""
-	keycode = keys[key] ? parseInt(key)
-	
-	{key, keycode, modifiers}
+dump pollution
 
 test = (str)->
-	# test to see if this shortcut works unquoted in a polluted environment
 	console.log "\n"
+	# assert.equal str, eval(str), 'Shortcut should work "unquoted" in a polluted environment'
 	console.log "Parsing #{str}..."
-	console.log parse str
-	console.log "Parsing #{eval(str)}..."
-	console.log parse eval(str)
+	console.log p1 = parseHotKey str
+	console.log p2 = parseHotKey eval(str)
+	assert.deepEqual p1, p2, "Shortcut should work \"unquoted\" in a polluted environment (#{str})"
 
+test "CapsLock"
+test "Ctrl+S"
 test "Ctrl+Alt+A"
 test "Ctrl+Shift+Alt+Enter"
 test "Ctrl+Win+F3"
+test "Win+Alt+Tab"
+test Alt+Shift+L
+test "Alt+Shift+Ctrl" # Modifier key as main key

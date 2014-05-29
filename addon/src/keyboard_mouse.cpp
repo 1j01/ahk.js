@@ -21,6 +21,10 @@ GNU General Public License for more details.
 #include "util.h"  // for strlicmp()
 #include "window.h" // for IsWindowHung()
 
+EXTERN_SCRIPT;
+
+vk_type ConvertMouseButton(TCHAR* _, bool __, bool ___ = false||true);
+void ScriptBlockInput(bool idk);
 
 // Added for v1.0.25.  Search on sPrevEventType for more comments:
 static KeyEventTypes sPrevEventType;
@@ -89,6 +93,69 @@ void DisguiseWinAltIfNeeded(vk_type aVK)
 		KeyEvent(KEYDOWNANDUP, g_MenuMaskKey); // Disguise it to suppress Start Menu or prevent activation of active window's menu bar.
 }
 
+// moved from script_autoit.cpp
+
+void DoIncrementalMouseMove(int aX1, int aY1, int aX2, int aY2, int aSpeed)
+// aX1 and aY1 are the starting coordinates, and "2" are the destination coordinates.
+// Caller has ensured that aSpeed is in the range 0 to 100, inclusive.
+{
+	// AutoIt3: So, it's a more gradual speed that is needed :)
+	int delta;
+	#define INCR_MOUSE_MIN_SPEED 32
+
+	while (aX1 != aX2 || aY1 != aY2)
+	{
+		if (aX1 < aX2)
+		{
+			delta = (aX2 - aX1) / aSpeed;
+			if (delta == 0 || delta < INCR_MOUSE_MIN_SPEED)
+				delta = INCR_MOUSE_MIN_SPEED;
+			if ((aX1 + delta) > aX2)
+				aX1 = aX2;
+			else
+				aX1 += delta;
+		} 
+		else 
+			if (aX1 > aX2)
+			{
+				delta = (aX1 - aX2) / aSpeed;
+				if (delta == 0 || delta < INCR_MOUSE_MIN_SPEED)
+					delta = INCR_MOUSE_MIN_SPEED;
+				if ((aX1 - delta) < aX2)
+					aX1 = aX2;
+				else
+					aX1 -= delta;
+			}
+
+		if (aY1 < aY2)
+		{
+			delta = (aY2 - aY1) / aSpeed;
+			if (delta == 0 || delta < INCR_MOUSE_MIN_SPEED)
+				delta = INCR_MOUSE_MIN_SPEED;
+			if ((aY1 + delta) > aY2)
+				aY1 = aY2;
+			else
+				aY1 += delta;
+		} 
+		else 
+			if (aY1 > aY2)
+			{
+				delta = (aY1 - aY2) / aSpeed;
+				if (delta == 0 || delta < INCR_MOUSE_MIN_SPEED)
+					delta = INCR_MOUSE_MIN_SPEED;
+				if ((aY1 - delta) < aY2)
+					aY1 = aY2;
+				else
+					aY1 -= delta;
+			}
+
+		MouseEvent(MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, 0, aX1, aY1);
+		DoMouseDelay();
+		// Above: A delay is required for backward compatibility and because it's just how the incremental-move
+		// feature was originally designed in AutoIt v3.  It may in fact improve reliability in some cases,
+		// especially with the mouse_event() method vs. SendInput/Play.
+	} // while()
+}
 
 
 // moved from SendKeys
@@ -140,7 +207,7 @@ void SendUnicodeChar(wchar_t aChar, int aModifiers = -1)
 }
 
 
-
+//void __cdecl SendKeys(char * aKeys, bool aSendRaw, enum SendModes aSendModeOrig, struct HWND__ * aTargetWindow)
 void SendKeys(LPTSTR aKeys, bool aSendRaw, SendModes aSendModeOrig, HWND aTargetWindow)
 // The aKeys string must be modifiable (not constant), since for performance reasons,
 // it's allowed to be temporarily altered by this function.  mThisHotkeyModifiersLR, if non-zero,
@@ -419,7 +486,7 @@ void SendKeys(LPTSTR aKeys, bool aSendRaw, SendModes aSendModeOrig, HWND aTarget
 	bool do_selective_blockinput = (g_BlockInputMode == TOGGLE_SEND || g_BlockInputMode == TOGGLE_SENDANDMOUSE)
 		&& !sSendMode && !aTargetWindow && g_os.IsWinNT4orLater();
 	if (do_selective_blockinput)
-		Line::ScriptBlockInput(true); // Turn it on unconditionally even if it was on, since Ctrl-Alt-Del might have disabled it.
+		ScriptBlockInput(true); // Turn it on unconditionally even if it was on, since Ctrl-Alt-Del might have disabled it.
 
 	vk_type vk;
 	sc_type sc;
@@ -907,7 +974,7 @@ brace_case_end: // This label is used to simplify the code without sacrificing p
 		AttachThreadInput(g_MainThreadID, target_thread, FALSE);
 
 	if (do_selective_blockinput && !blockinput_prev) // Turn it back off only if it was off before we started.
-		Line::ScriptBlockInput(false);
+		ScriptBlockInput(false);
 
 	// v1.0.43.03: Someone reported that when a non-autoreplace hotstring calls us to do its backspacing, the
 	// hotstring's subroutine can execute a command that activates another window owned by the script before
@@ -1679,7 +1746,7 @@ void KeyEvent(KeyEventTypes aEventType, vk_type aVK, sc_type aSC, HWND aTargetWi
 		bool we_turned_blockinput_off = g_BlockInput && (aVK == VK_MENU || aVK == VK_LMENU || aVK == VK_RMENU)
 			&& !caller_is_keybd_hook && g_os.IsWinNT4orLater(); // Ordered for short-circuit performance.
 		if (we_turned_blockinput_off)
-			Line::ScriptBlockInput(false);
+			ScriptBlockInput(false);
 
 		vk_type control_vk;      // When not set somewhere below, these are left uninitialized to help catch bugs.
 		HKL target_keybd_layout; //
@@ -1822,7 +1889,7 @@ void KeyEvent(KeyEventTypes aEventType, vk_type aVK, sc_type aSC, HWND aTargetWi
 		}
 
 		if (we_turned_blockinput_off)  // Already made thread-safe by action higher above.
-			Line::ScriptBlockInput(true);  // Turn BlockInput back on.
+			ScriptBlockInput(true);  // Turn BlockInput back on.
 	}
 
 	if (aDoKeyDelay) // SM_PLAY also uses DoKeyDelay(): it stores the delay item in the event array.
@@ -1898,7 +1965,7 @@ void ParseClickOptions(LPTSTR aOptions, int &aX, int &aY, vk_type &aVK, KeyEvent
 		}
 		else // Mouse button/name and/or Down/Up/Repeat-count is present.
 		{
-			if (temp_vk = Line::ConvertMouseButton(next_option, true, true))
+			if (temp_vk = ConvertMouseButton(next_option, true, true))
 				aVK = temp_vk;
 			else
 			{
@@ -1936,7 +2003,7 @@ ResultType PerformMouse(ActionTypeType aActionType, LPTSTR aButton, LPTSTR aX1, 
 		vk = 0;
 	else
 		// ConvertMouseButton() treats blank as "Left":
-		if (   !(vk = Line::ConvertMouseButton(aButton, aActionType == ACT_MOUSECLICK))   )
+		if (   !(vk = ConvertMouseButton(aButton, aActionType == ACT_MOUSECLICK))   )
 			vk = VK_LBUTTON; // See below.
 			// v1.0.43: Seems harmless (due to rarity) to treat invalid button names as "Left" (keeping in
 			// mind that due to loadtime validation, invalid buttons are possible only when the button name is
@@ -2005,7 +2072,7 @@ void PerformMouseCommon(ActionTypeType aActionType, vk_type aVK, int aX1, int aY
 	bool do_selective_blockinput = (g_BlockInputMode == TOGGLE_MOUSE || g_BlockInputMode == TOGGLE_SENDANDMOUSE)
 		&& !sSendMode && g_os.IsWinNT4orLater();
 	if (do_selective_blockinput) // It seems best NOT to use g_BlockMouseMove for this, since often times the user would want keyboard input to be disabled too, until after the mouse event is done.
-		Line::ScriptBlockInput(true); // Turn it on unconditionally even if it was on, since Ctrl-Alt-Del might have disabled it.
+		ScriptBlockInput(true); // Turn it on unconditionally even if it was on, since Ctrl-Alt-Del might have disabled it.
 
 	switch (aActionType)
 	{
@@ -2030,7 +2097,7 @@ void PerformMouseCommon(ActionTypeType aActionType, vk_type aVK, int aX1, int aY
 	}
 
 	if (do_selective_blockinput && !blockinput_prev)  // Turn it back off only if it was off before we started.
-		Line::ScriptBlockInput(false);
+		ScriptBlockInput(false);
 }
 
 
@@ -2492,10 +2559,17 @@ void MouseMove(int &aX, int &aY, DWORD &aEventFlags, int aSpeed, bool aMoveOffse
 	// it arrives at the destination coordinates.
 	// Convert the cursor's current position to mouse event coordinates (MOUSEEVENTF_ABSOLUTE).
 	GetCursorPos(&cursor_pos);
+	/*
 	DoIncrementalMouseMove(
 		  MOUSE_COORD_TO_ABS(cursor_pos.x, screen_width)  // Source/starting coords.
 		, MOUSE_COORD_TO_ABS(cursor_pos.y, screen_height) //
 		, aX, aY, aSpeed);                                // Destination/ending coords.
+	*/
+	DoIncrementalMouseMove(
+		MOUSE_COORD_TO_ABS(cursor_pos.x, screen_width),  // Source/starting coords.
+		MOUSE_COORD_TO_ABS(cursor_pos.y, screen_height), ///
+		aX, aY, aSpeed // Destination/ending coords.
+	);
 }
 
 

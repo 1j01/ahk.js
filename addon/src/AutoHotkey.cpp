@@ -14,6 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
 
+/*
 #include "stdafx.h" // pre-compiled headers
 #include "globaldata.h" // for access to many global vars
 #include "application.h" // for MsgSleep()
@@ -324,3 +325,4 @@ int WINAPI _tWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmd
 	MsgSleep(SLEEP_INTERVAL, WAIT_FOR_MESSAGES);
 	return 0; // Never executed; avoids compiler warning.
 }
+*/

@@ -18,11 +18,101 @@ GNU General Public License for more details.
 #define globaldata_h
 
 #include "hook.h" // For KeyHistoryItem and probably other things.
-#include "clipboard.h"  // For the global clipboard object
-#include "script.h" // For the global script object and g_ErrorLevel
+//#include "clipboard.h"  // For the global clipboard object
+//#include "script.h" // For the global script object and g_ErrorLevel
 #include "os_version.h" // For the global OS_Version object
 
-#include "Debugger.h"
+//#include "Debugger.h"
+
+// FROM SCRIPT.H
+#include "defines.h"
+
+
+struct InputBoxType
+{
+	LPTSTR title;
+	LPTSTR text;
+	int width;
+	int height;
+	int xpos;
+	int ypos;
+	Var *output_var;
+	TCHAR password_char;
+	LPTSTR default_string;
+	DWORD timeout;
+	HWND hwnd;
+	HFONT font;
+};
+
+struct SplashType
+{
+	int width;
+	int height;
+	int bar_pos;  // The amount of progress of the bar (it's position).
+	int margin_x; // left/right margin
+	int margin_y; // top margin
+	int text1_height; // Height of main text control.
+	int object_width;   // Width of image.
+	int object_height;  // Height of the progress bar or image.
+	HWND hwnd;
+	int pic_type;
+	union
+	{
+		HBITMAP pic_bmp; // For SplashImage.
+		HICON pic_icon;
+	};
+	HWND hwnd_bar;
+	HWND hwnd_text1;  // MainText
+	HWND hwnd_text2;  // SubText
+	HFONT hfont1; // Main
+	HFONT hfont2; // Sub
+	HBRUSH hbrush; // Window background color brush.
+	COLORREF color_bk; // The background color itself.
+	COLORREF color_text; // Color of the font.
+};
+
+
+struct MsgMonitorStruct
+{
+	Func *func;
+	UINT msg;
+	// Keep any members smaller than 4 bytes adjacent to save memory:
+	short instance_count;  // Distinct from func.mInstances because the script might have called the function explicitly.
+	short max_instances; // v1.0.47: Support more than one thread.
+};
+
+
+class PsuedoScript
+{
+public:
+	DWORD mThisHotkeyStartTime, mPriorHotkeyStartTime;  // Tickcount timestamp of when its subroutine began.
+	modLR_type mThisHotkeyModifiersLR;
+	DWORD mLastScriptRest, mLastPeekTime;
+	//UINT mTimerCount, mTimerEnabledCount;
+	
+	void PsuedoScript::ExitApp(ExitReasons reason){
+		//TODO
+		exit(0);
+	}
+
+	ResultType PsuedoScript::ScriptError(LPTSTR message = _T("An unknown error occured"))
+	{
+		//TODO: throw a v8 error
+		return FAIL;
+	}
+
+	ResultType PsuedoScript::ThrowError(LPTSTR message = _T("An unknown error occured"))
+	{
+		//TODO: throw a v8 error
+		//return OK;//errors are okay
+		return FAIL;
+	}
+	PsuedoScript::PsuedoScript() // A simple constructor to initialize the fields that need it.
+		: mThisHotkeyStartTime(0)
+	{}
+};
+
+// </>
 
 extern HINSTANCE g_hInstance;
 extern DWORD g_MainThreadID;
@@ -96,7 +186,7 @@ extern int g_nThreads;
 extern int g_nPausedThreads;
 extern int g_MaxHistoryKeys;
 
-extern VarSizeType g_MaxVarCapacity;
+//extern VarSizeType g_MaxVarCapacity;
 extern UCHAR g_MaxThreadsPerHotkey;
 extern int g_MaxThreadsTotal;
 extern int g_MaxHotkeysPerInterval;
@@ -164,8 +254,8 @@ extern TCHAR g_EndChars[HS_MAX_END_CHARS + 1];
 // Global objects:
 extern Var *g_ErrorLevel;
 extern input_type g_input;
-EXTERN_SCRIPT;
-EXTERN_CLIPBOARD;
+//EXTERN_SCRIPT;
+//EXTERN_CLIPBOARD;
 EXTERN_OSVER;
 
 extern int g_IconTray;

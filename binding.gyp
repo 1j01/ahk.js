@@ -18,7 +18,7 @@
 				"addon/src/TextIO.cpp",           "addon/src/TextIO.h",
 				"addon/src/StringConv.cpp",
 				"addon/src/stdafx.cpp",           "addon/src/stdafx.h",
-				"addon/src/Util_Meaty.cpp",       "addon/src/Util_Meaty.h",
+				"addon/src/processes.cpp",        "addon/src/processes.h",
 				
 				"addon/src/gui_stuff_and_enums.h"
 			]

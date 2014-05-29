@@ -1,7 +1,10 @@
+
+#ifdef DISABLED
+
 #include "stdafx.h"
 #include "TextIO.h"
-#include "script.h"
-#include "script_object.h"
+//#include "script.h"
+//#include "script_object.h"
 
 UINT g_ACP = GetACP(); // Requires a reboot to change.
 #define INVALID_CHAR UorA(0xFFFD, '?')
@@ -1249,3 +1252,5 @@ __int64 TextMem::_Length() const
 {
 	return mData.mLength;
 }
+
+#endif

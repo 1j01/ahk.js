@@ -77,7 +77,7 @@ private:
 public:
 	LPTSTR mName;    // The name of the group.
 	WindowSpec *mFirstWindow, *mLastWindow;
-	Label *mJumpToLabel;
+	//REMOVE Label *mJumpToLabel;
 	WinGroup *mNextGroup;  // Next item in linked list.
 	UINT mWindowCount;
 
@@ -95,7 +95,7 @@ public:
 		, mWindowCount(0)
 		, mNextGroup(NULL) // v1.0.41: Required for thread-safety, but also for maintainability.
 		, mIsModeActivate(true) // arbitrary default.
-		, mJumpToLabel(NULL)
+		//REMOVE , mJumpToLabel(NULL)
 	{}
 	void *operator new(size_t aBytes) {return SimpleHeap::Malloc(aBytes);}
 	void *operator new[](size_t aBytes) {return SimpleHeap::Malloc(aBytes);}

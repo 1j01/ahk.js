@@ -233,50 +233,6 @@ enum MainWindowModes {MAIN_MODE_NO_CHANGE, MAIN_MODE_LINES, MAIN_MODE_VARS
 ResultType ShowMainWindow(MainWindowModes aMode = MAIN_MODE_NO_CHANGE, bool aRestricted = true);
 DWORD GetAHKInstallDir(LPTSTR aBuf);
 
-
-struct InputBoxType
-{
-	LPTSTR title;
-	LPTSTR text;
-	int width;
-	int height;
-	int xpos;
-	int ypos;
-	Var *output_var;
-	TCHAR password_char;
-	LPTSTR default_string;
-	DWORD timeout;
-	HWND hwnd;
-	HFONT font;
-};
-
-struct SplashType
-{
-	int width;
-	int height;
-	int bar_pos;  // The amount of progress of the bar (it's position).
-	int margin_x; // left/right margin
-	int margin_y; // top margin
-	int text1_height; // Height of main text control.
-	int object_width;   // Width of image.
-	int object_height;  // Height of the progress bar or image.
-	HWND hwnd;
-	int pic_type;
-	union
-	{
-		HBITMAP pic_bmp; // For SplashImage.
-		HICON pic_icon;
-	};
-	HWND hwnd_bar;
-	HWND hwnd_text1;  // MainText
-	HWND hwnd_text2;  // SubText
-	HFONT hfont1; // Main
-	HFONT hfont2; // Sub
-	HBRUSH hbrush; // Window background color brush.
-	COLORREF color_bk; // The background color itself.
-	COLORREF color_text; // Color of the font.
-};
-
 // Use GetClientRect() to determine the available width so that control's can be centered.
 #define SPLASH_CALC_YPOS \
 	int bar_y = splash.margin_y + (splash.text1_height ? (splash.text1_height + splash.margin_y) : 0);\
@@ -459,22 +415,6 @@ enum DllArgTypes {
 	, DLL_ARG_xSTR = UorA(DLL_ARG_ASTR, DLL_ARG_WSTR) // To simplify some sections.
 };  // Some sections might rely on DLL_ARG_INVALID being 0.
 
-
-// Note that currently this value must fit into a sc_type variable because that is how TextToKey()
-// stores it in the hotkey class.  sc_type is currently a UINT, and will always be at least a
-// WORD in size, so it shouldn't be much of an issue:
-#define MAX_JOYSTICKS 16  // The maximum allowed by any Windows operating system.
-#define MAX_JOY_BUTTONS 32 // Also the max that Windows supports.
-enum JoyControls {JOYCTRL_INVALID, JOYCTRL_XPOS, JOYCTRL_YPOS, JOYCTRL_ZPOS
-, JOYCTRL_RPOS, JOYCTRL_UPOS, JOYCTRL_VPOS, JOYCTRL_POV
-, JOYCTRL_NAME, JOYCTRL_BUTTONS, JOYCTRL_AXES, JOYCTRL_INFO
-, JOYCTRL_1, JOYCTRL_2, JOYCTRL_3, JOYCTRL_4, JOYCTRL_5, JOYCTRL_6, JOYCTRL_7, JOYCTRL_8  // Buttons.
-, JOYCTRL_9, JOYCTRL_10, JOYCTRL_11, JOYCTRL_12, JOYCTRL_13, JOYCTRL_14, JOYCTRL_15, JOYCTRL_16
-, JOYCTRL_17, JOYCTRL_18, JOYCTRL_19, JOYCTRL_20, JOYCTRL_21, JOYCTRL_22, JOYCTRL_23, JOYCTRL_24
-, JOYCTRL_25, JOYCTRL_26, JOYCTRL_27, JOYCTRL_28, JOYCTRL_29, JOYCTRL_30, JOYCTRL_31, JOYCTRL_32
-, JOYCTRL_BUTTON_MAX = JOYCTRL_32
-};
-#define IS_JOYSTICK_BUTTON(joy) (joy >= JOYCTRL_1 && joy <= JOYCTRL_BUTTON_MAX)
 
 enum WinGetCmds {WINGET_CMD_INVALID, WINGET_CMD_ID, WINGET_CMD_IDLAST, WINGET_CMD_PID, WINGET_CMD_PROCESSNAME
 	, WINGET_CMD_COUNT, WINGET_CMD_LIST, WINGET_CMD_MINMAX, WINGET_CMD_CONTROLLIST, WINGET_CMD_CONTROLLISTHWND
@@ -2145,15 +2085,6 @@ public:
 };
 
 
-
-struct MsgMonitorStruct
-{
-	Func *func;
-	UINT msg;
-	// Keep any members smaller than 4 bytes adjacent to save memory:
-	short instance_count;  // Distinct from func.mInstances because the script might have called the function explicitly.
-	short max_instances; // v1.0.47: Support more than one thread.
-};
 
 
 

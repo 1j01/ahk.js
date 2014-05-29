@@ -1,6 +1,7 @@
 
+#include "src/stdafx.h"
 #include <string>
-#include <tchar.h>
+//#include <tchar.h>
 
 #include <node.h>
 
@@ -28,10 +29,11 @@ Handle<Value> send(const Arguments& args) {
 	// convert it to string
 	std::string keystring = std::string(*param1);
 	
-	char c[1000];
-	strncpy(c, keystring.c_str(), 999);
+	TCHAR c[1000];
+	//strncpy(c, keystring.c_str(), 999);
+	std::copy(keystring.begin(), keystring.end(), c);
 	c[999] = '\0';
-	SendKeys(c, false, SM_PLAY);
+	SendKeys(c, false, SM_PLAY, 0);
 
 	return scope.Close(Undefined());
 }

@@ -17,9 +17,22 @@ GNU General Public License for more details.
 #include "stdafx.h" // pre-compiled headers
 #include "window.h"
 #include "util.h" // for strlcpy()
+#include "processes.h" // for Util_WinKill()
 #include "application.h" // for MsgSleep()
 #include "psapi.h" // for ahk_exe
+#include "gui_stuff_and_enums.h"
+#define MAX_VAR_NAME_LENGTH (UCHAR_MAX - 2)
 
+bool RegExMatch(LPTSTR aHaystack, LPTSTR aNeedleRegEx){
+	//TODO: use API to match windows
+	return aHaystack == aNeedleRegEx;
+}
+bool IsTextMatch(LPTSTR aHaystack, LPTSTR aNeedle){
+	//TODO: use API to match windows
+	return aHaystack == aNeedle;
+}
+
+EXTERN_SCRIPT;
 
 HWND WinActivate(global_struct &aSettings, LPTSTR aTitle, LPTSTR aText, LPTSTR aExcludeTitle, LPTSTR aExcludeText
 	, bool aFindLastMatch, HWND aAlreadyVisited[], int aAlreadyVisitedCount)
@@ -744,14 +757,14 @@ BOOL CALLBACK EnumChildFind(HWND aWnd, LPARAM lParam)
 
 
 
-ResultType StatusBarUtil(Var *aOutputVar, HWND aBarHwnd, int aPartNumber, LPTSTR aTextToWaitFor
+ResultType StatusBarUtil(HWND aBarHwnd, int aPartNumber, LPTSTR aTextToWaitFor
 	, int aWaitTime, int aCheckInterval)
 // aOutputVar is allowed to be NULL if aTextToWaitFor isn't NULL or blank. aBarHwnd is allowed
 // to be NULL because in that case, the caller wants us to set ErrorLevel appropriately and also
 // make aOutputVar empty.
 {
-	if (aOutputVar)
-		aOutputVar->Assign(); // Init to blank in case of early return.
+	//DISABLE if (aOutputVar)
+	//DISABLE 	aOutputVar->Assign(); // Init to blank in case of early return.
 
 	// Legacy: Waiting 500ms in place of a "0" seems more useful than a true zero, which doens't need
 	// to be supported because it's the same thing as something like "IfWinExist":
@@ -813,11 +826,11 @@ ResultType StatusBarUtil(Var *aOutputVar, HWND aBarHwnd, int aPartNumber, LPTSTR
 				// Check if the retrieved text matches the caller's criteria. In addition to
 				// normal/intuitive matching, a match is also achieved if both are empty strings.
 				// In fact, IsTextMatch() yields "true" whenever aTextToWaitFor is the empty string:
-				if (IsTextMatch(local_buf, aTextToWaitFor))
+				/*DISABLE if (IsTextMatch(local_buf, aTextToWaitFor))
 				{
 					g_ErrorLevel->Assign(ERRORLEVEL_NONE); // Indicate "match found".
 					break;
-				}
+				}*/
 			}
 			//else SB_GETTEXT msg timed out or failed.  Leave local_buf unaltered.  See comment below.
 		}
@@ -831,7 +844,7 @@ ResultType StatusBarUtil(Var *aOutputVar, HWND aBarHwnd, int aPartNumber, LPTSTR
 		// the checking above would already have done a "break" because of aTextToWaitFor being blank when
 		// passed to IsTextMatch()].  Also, don't continue to wait if the status bar no longer exists
 		// (which is usually caused by the parent window having been destroyed):
-		if (aOutputVar || !IsWindow(aBarHwnd))
+		if (/*aOutputVar ||*/ !IsWindow(aBarHwnd))
 			break; // Leave ErrorLevel at its default to indicate bar text retrieval problem in both cases.
 
 		// Since above didn't break, we're in "wait" mode (more than one iteration).
@@ -841,7 +854,7 @@ ResultType StatusBarUtil(Var *aOutputVar, HWND aBarHwnd, int aPartNumber, LPTSTR
 			MsgSleep(aCheckInterval);
 		else // Timed out.
 		{
-			g_ErrorLevel->Assign(ERRORLEVEL_ERROR); // Indicate "timeout".
+			//DISABLE g_ErrorLevel->Assign(ERRORLEVEL_ERROR); // Indicate "timeout".
 			break;
 		}
 	} // for()
@@ -850,12 +863,12 @@ ResultType StatusBarUtil(Var *aOutputVar, HWND aBarHwnd, int aPartNumber, LPTSTR
 	// or the status bar didn't have the part number provided, unless the below fails.
 	// Note we use a temp buf rather than writing directly to the var contents above, because
 	// we don't know how long the text will be until after the above operation finishes.
-	ResultType result_to_return = aOutputVar ? aOutputVar->Assign(local_buf) : OK;
+	//DISABLE ResultType result_to_return = aOutputVar ? aOutputVar->Assign(local_buf) : OK;
 	FreeInterProcMem(handle, remote_buf);
-	return result_to_return;
+	return OK;
 
 error:
-	return g_script.SetErrorLevelOrThrowStr(aOutputVar ? ERRORLEVEL_ERROR : ERRORLEVEL_ERROR2);
+	return g_script.ThrowError();
 }
 
 
@@ -1017,7 +1030,8 @@ int MsgBox(LPCTSTR aText, UINT uType, LPTSTR aTitle, double aTimeout, HWND aOwne
 	if (!aTitle || !*aTitle)
 		// If available, the script's filename seems a much better title in case the user has
 		// more than one script running:
-		aTitle = (g_script.mFileName && *g_script.mFileName) ? g_script.mFileName : T_AHK_NAME_VERSION;
+		//aTitle = (g_script.mFileName && *g_script.mFileName) ? g_script.mFileName : T_AHK_NAME_VERSION;
+		aTitle = T_AHK_NAME_VERSION;
 
 	// It doesn't feel safe to modify the contents of the caller's aText and aTitle,
 	// even if the caller were to tell us it is modifiable.  This is because the text
@@ -1557,7 +1571,7 @@ ResultType WindowSearch::SetCriteria(global_struct &aSettings, LPTSTR aTitle, LP
 			tcslcpy(buf, omit_leading_whitespace(cp), _countof(buf));
 			if (cp = StrChrAny(buf, _T(" \t"))) // Group names can't contain spaces, so terminate at the first one to exclude any "ahk_" criteria that come afterward.
 				*cp = '\0';
-			if (   !(mCriterionGroup = g_script.FindGroup(buf))   )
+			//DISABLE if (   !(mCriterionGroup = g_script.FindGroup(buf))   )
 				return FAIL; // No such group: Inform caller of invalid criteria.  No need to do anything else further below.
 		}
 		else
@@ -1818,7 +1832,7 @@ HWND WindowSearch::IsMatch(bool aInvert)
 		++mFoundCount; // This must be done prior to the mArrayStart section below.
 	}
 	//else aInvert==true, which means caller doesn't want the above set.
-
+/* BROKEDISABLE 
 	if (mArrayStart) // Probably not thread-safe due to FindOrAddVar(), so hook thread must call only with NULL mArrayStart.
 	{
 		// Make it longer than Max var name so that FindOrAddVar() will be able to spot and report
@@ -1830,7 +1844,7 @@ HWND WindowSearch::IsMatch(bool aInvert)
 		if (array_item)
 			array_item->AssignHWND(mFoundParent);
 		//else no error reporting currently, since should be very rare.
-	}
+	}*/
 
 	// Fix for v1.0.30.01: Don't return mFoundParent because its NULL when aInvert is true.
 	// At this stage, the candidate is a known match, so return it:

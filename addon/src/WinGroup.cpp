@@ -19,6 +19,7 @@ GNU General Public License for more details.
 #include "window.h" // for several lower level window functions
 #include "globaldata.h" // for DoWinDelay
 #include "application.h" // for DoWinDelay's MsgSleep()
+EXTERN_SCRIPT;
 
 // Define static members data:
 WinGroup *WinGroup::sGroupLastUsed = NULL;
@@ -66,7 +67,7 @@ ResultType WinGroup::AddWindow(LPTSTR aTitle, LPTSTR aText, LPTSTR aExcludeTitle
 	// must be carefully reviewed:
 	WindowSpec *the_new_win = new WindowSpec(new_title, new_text, new_exclude_title, new_exclude_text);
 	if (the_new_win == NULL)
-		return g_script.ScriptError(ERR_OUTOFMEM);
+		return g_script.ThrowError(_T("Out of memory"));
 	if (mFirstWindow == NULL)
 		mFirstWindow = the_new_win;
 	else
@@ -272,12 +273,12 @@ ResultType WinGroup::Activate(bool aStartWithMostRecent, WindowSpec *aWinSpec, L
 			}
 			else 
 			{
-				if (aJumpToLabel && mJumpToLabel)
+				/*UM if (aJumpToLabel && mJumpToLabel)
 				{
 					// Caller asked us to return in this case, so that it can
 					// use this value to execute a user-specified Gosub:
 					*aJumpToLabel = mJumpToLabel;  // Set output param for the caller.
-				}
+				}*/
 				return FAIL; // Let GroupActivate set ErrorLevel to indicate what happened.
 			}
 		}

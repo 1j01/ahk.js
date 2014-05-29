@@ -20,6 +20,7 @@ GNU General Public License for more details.
 #include "util.h" // for snprintfcat()
 #include "window.h" // for MsgBox()
 #include "application.h" // For MsgSleep().
+//#include "hotkey.h"?
 
 // Declare static variables (global to only this file/module, i.e. no external linkage):
 static HANDLE sKeybdMutex = NULL;
@@ -2516,6 +2517,7 @@ bool CollectInput(KBDLLHOOKSTRUCT &aEvent, const vk_type aVK, const sc_type aSC,
 // might have adjusted vk, namely to make it a left/right specific modifier key rather than a
 // neutral one.
 {
+
 #define shs Hotstring::shs  // For convenience.
 	// Generally, we return this value to our caller so that it will treat the event as visible
 	// if either there's no input in progress or if there is but it's visible.  Below relies on
@@ -2844,6 +2846,7 @@ bool CollectInput(KBDLLHOOKSTRUCT &aEvent, const vk_type aVK, const sc_type aSC,
 						if (ltolower(*cpbuf) != ltolower(*cphs)) // v1.0.43.04: Fixed crash by properly casting to UCHAR (via macro).
 							break;
 
+				
 				// Check if one of the loops above found a matching hotstring (relies heavily on
 				// short-circuit boolean order):
 				if (   cphs >= hs.mString // One of the loops above stopped early due discovering "no match"...
@@ -2854,7 +2857,7 @@ bool CollectInput(KBDLLHOOKSTRUCT &aEvent, const vk_type aVK, const sc_type aSC,
 					// In that case, continue searching for other matches in case the script contains
 					// hotstrings that would trigger simultaneously were it not for the "only one" rule.
 					// L4: Added hs.mHotExprLine for #if (expression).
-					|| !HotCriterionAllowsFiring(hs.mHotCriterion, hs.mHotWinTitle, hs.mHotWinText, hs.mHotExprIndex, hs.mJumpToLabel ? hs.mJumpToLabel->mName : _T(""))   )
+					|| !HotCriterionAllowsFiring(hs.mHotCriterion, hs.mHotWinTitle, hs.mHotWinText, hs.mHotExprIndex, _T("")))
 					continue; // No match or not eligible to fire.
 					// v1.0.42: The following scenario defeats the ability to give criterion hotstrings
 					// precedence over non-criterion:
@@ -2867,7 +2870,7 @@ bool CollectInput(KBDLLHOOKSTRUCT &aEvent, const vk_type aVK, const sc_type aSC,
 					// extra code to determine this at runtime; and even if it were added, it might be
 					// more flexible not to do it; instead, to let the script determine (even by resorting to
 					// #IfWinNOTActive) what precedence hotstrings have with respect to each other.
-
+				
 				//////////////////////////////////////////////////////////////
 				// MATCHING HOTSTRING WAS FOUND (since above didn't continue).
 				//////////////////////////////////////////////////////////////

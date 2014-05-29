@@ -1,3 +1,4 @@
+
 /*
 AutoHotkey
 
@@ -14,14 +15,39 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
 
+#include "globaldata.h" // I had to add this. >:(
+
 #include "stdafx.h" // pre-compiled headers
 // These includes should probably a superset of those in globaldata.h:
 #include "hook.h" // For KeyHistoryItem and probably other things.
-#include "clipboard.h"  // For the global clipboard object
-#include "script.h" // For the global script object and g_ErrorLevel
+//#include "clipboard.h"  // For the global clipboard object
+//#include "script.h" // For the global script object and g_ErrorLevel
 #include "os_version.h" // For the global OS_Version object
 
-#include "Debugger.h"
+//#include "Debugger.h"
+
+// FROM SCRIPT.H
+#define MAX_THREADS_LIMIT UCHAR_MAX // Uses UCHAR_MAX (255) because some variables that store a thread count are UCHARs.
+#define MAX_THREADS_DEFAULT 10 // Must not be higher than above.
+#define EMERGENCY_THREADS 2 // This is the number of extra threads available after g_MaxThreadsTotal has been reached for the following to launch: hotkeys/etc. whose first line is something important like ExitApp or Pause. (see #MaxThreads documentation).
+#define MAX_THREADS_EMERGENCY (g_MaxThreadsTotal + EMERGENCY_THREADS)
+#define TOTAL_ADDITIONAL_THREADS (EMERGENCY_THREADS + 2) // See below.
+// Must allow two beyond EMERGENCY_THREADS: One for the AutoExec/idle thread and one so that ExitApp()
+// can run even when MAX_THREADS_EMERGENCY has been reached.
+// Explanation: If/when AutoExec() finishes, although it no longer needs g_array[0] (not even
+// AutoExecSectionTimeout() needs it because it either won't be called or it will return early),
+// at least the following might still use g_array[0]:
+// 1) Threadless (fast-mode) callbacks that have no controlling script thread; see RegisterCallbackCStub().
+// 2) g_array[0].IsPaused indicates whether the script is in a paused state while idle.
+// In addition, it probably simplifies the code not to reclaim g_array[0]; e.g. ++g and --g can be done
+// unconditionally when creating new threads.
+
+typedef UINT_PTR VarSizeType;
+
+// </>
+
+
+
 
 // Since at least some of some of these (e.g. g_modifiersLR_logical) should not
 // be kept in the struct since it's not correct to save and restore their
@@ -192,23 +218,16 @@ TCHAR g_EndChars[HS_MAX_END_CHARS + 1] = _T("-()[]{}:;'\"/\\,.?!\n \t");  // Hot
 // i.e. word(synonym) and/or word/synonym
 
 // Global objects:
-Var *g_ErrorLevel = NULL; // Allows us (in addition to the user) to set this var to indicate success/failure.
+//Var *g_ErrorLevel = NULL; // Allows us (in addition to the user) to set this var to indicate success/failure.
 input_type g_input;
-Script g_script;
+
+PsuedoScript g_script;
+
 // This made global for performance reasons (determining size of clipboard data then
 // copying contents in or out without having to close & reopen the clipboard in between):
-Clipboard g_clip;
+//Clipboard g_clip;
 OS_Version g_os;  // OS version object, courtesy of AutoIt3.
 
-// THIS MUST BE DONE AFTER the g_os object is initialized above:
-// These are conditional because on these OSes, only standard-palette 16-color icons are supported,
-// which would cause the normal icons to look mostly gray when used with in the tray.  So we use
-// special 16x16x16 icons, but only for the tray because these OSes display the nicer icons okay
-// in places other than the tray.  Also note that the red icons look okay, at least on Win98,
-// because they are "red enough" not to suffer the graying effect from the palette shifting done
-// by the OS:
-int g_IconTray = (g_os.IsWinXPorLater() || g_os.IsWinMeorLater()) ? IDI_TRAY : IDI_TRAY_WIN9X;
-int g_IconTraySuspend = (g_IconTray == IDI_TRAY) ? IDI_SUSPEND : IDI_TRAY_WIN9X_SUSPEND;
 
 DWORD g_OriginalTimeout;
 

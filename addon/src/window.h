@@ -20,7 +20,9 @@ GNU General Public License for more details.
 #include "defines.h"
 #include "globaldata.h"
 #include "util.h" // for strlcpy()
+#include "WinGroup.h"
 
+typedef UINT_PTR VarSizeType;
 
 // Note: it is apparently possible for a hidden window to be the foreground
 // window (it just looks strange).  If DetectHiddenWindows is off, set
@@ -43,6 +45,8 @@ if (USE_FOREGROUND_WINDOW(title, text, exclude_title, exclude_text))\
 
 
 
+/* SHOULDN'T BE NEEDED; DO TEXT STUFF IN JAVASCRIPT
+
 inline bool IsTextMatch(LPTSTR aHaystack, LPTSTR aNeedle)
 // Generic helper function used by WindowSearch and other things.
 // To help performance, it's the caller's responsibility to ensure that all params are not NULL.
@@ -57,7 +61,7 @@ inline bool IsTextMatch(LPTSTR aHaystack, LPTSTR aNeedle)
 	default: // Otherwise: Exact match.
 		return !_tcscmp(aHaystack, aNeedle); 
 	}
-}
+}*/
 
 
 

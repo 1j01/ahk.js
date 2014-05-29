@@ -351,7 +351,7 @@ ResultType STDMETHODCALLTYPE Object::Invoke(
 {
 	SymbolType key_type;
 	KeyType key;
-    FieldType *field;
+	FieldType *field;
 	IndexType insert_pos;
 
 	// If this is some object's base and is being invoked in that capacity, call

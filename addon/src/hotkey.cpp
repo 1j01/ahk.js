@@ -19,6 +19,7 @@ GNU General Public License for more details.
 #include "globaldata.h"  // For g_os and other global vars.
 #include "window.h" // For MsgBox()
 //#include "application.h" // For ExitApp()
+EXTERN_SCRIPT;
 
 // Initialize static members:
 HookType Hotkey::sWhichHookNeeded = 0;
@@ -30,8 +31,6 @@ HotkeyIDType Hotkey::sNextID = 0;
 const HotkeyIDType &Hotkey::sHotkeyCount = Hotkey::sNextID;
 bool Hotkey::sJoystickHasHotkeys[MAX_JOYSTICKS] = {false};
 DWORD Hotkey::sJoyHotkeyCount = 0;
-
-
 
 // L4: Added aHotExprIndex for #if (expression).
 HWND HotCriterionAllowsFiring(HotCriterionType aHotCriterion, LPTSTR aWinTitle, LPTSTR aWinText, int aHotExprIndex, LPTSTR aHotkeyName)
@@ -325,7 +324,7 @@ void Hotkey::ManifestAllHotkeysHotstringsHooks()
 				for (hot.mType = HK_KEYBD_HOOK, vp = hot.mFirstVariant; vp; vp = vp->mNextVariant)
 				{
 					if (   !vp->mHotCriterion && vp->mEnabled // It's a global variant (no criteria) and it's enabled...
-						&& (!g_IsSuspended || vp->mJumpToLabel->IsExemptFromSuspend())   )
+						&& (!g_IsSuspended /*|| vp->mJumpToLabel->IsExemptFromSuspend()*/)   )
 						// ... and this variant isn't suspended (we already know IsCompletelyDisabled()==false from an earlier check).
 					{
 						hot.mType = HK_NORMAL; // Override the default.  Hook not needed.
@@ -529,7 +528,7 @@ bool Hotkey::PrefixHasNoEnabledSuffixes(int aVKorSC, bool aIsSC)
 			// v1.0.42: Fixed to take into account whether the hotkey is suspended (previously it only checked
 			// whether the hotkey was enabled (above), which isn't enough):
 			if (   vp->mEnabled // This particular variant within its parent hotkey is enabled.
-				&& (!g_IsSuspended || vp->mJumpToLabel->IsExemptFromSuspend()) // This variant isn't suspended...
+				&& (!g_IsSuspended /*|| vp->mJumpToLabel->IsExemptFromSuspend()*/) // This variant isn't suspended...
 				&& (!vp->mHotCriterion || HotCriterionAllowsFiring(vp->mHotCriterion
 					// L4: Added vp->mHotExprIndex for #if (expression).
 					, vp->mHotWinTitle, vp->mHotWinText, vp->mHotExprIndex, hk.mName))   ) // ... and its criteria allow it to fire.
@@ -573,7 +572,7 @@ HotkeyVariant *Hotkey::CriterionAllowsFiring(HWND *aFoundHWND)
 		// is for maintainability and code size reduction.  Finally, it's unlikely to significantly
 		// impact performance since the vast majority of hotkeys have either one or just a few variants.
 		if (   vp->mEnabled // This particular variant within its parent hotkey is enabled.
-			&& (!g_IsSuspended || vp->mJumpToLabel->IsExemptFromSuspend()) // This variant isn't suspended...
+			&& (!g_IsSuspended /*|| vp->mJumpToLabel->IsExemptFromSuspend()*/) // This variant isn't suspended...
 			&& (!vp->mHotCriterion || (found_hwnd = HotCriterionAllowsFiring(vp->mHotCriterion
 				// L4: Added vp->mHotExprIndex for #if (expression).
 				, vp->mHotWinTitle, vp->mHotWinText, vp->mHotExprIndex, mName)))   ) // ... and its criteria allow it to fire.
@@ -646,7 +645,7 @@ HotkeyVariant *Hotkey::CriterionFiringIsCertainHelper(HotkeyIDType &aHotkeyIDwit
 		// (once in the hook to determine whether the hotkey keystroke should be passed through to the active window,
 		// and again upon receipt of the message for reasons explained there).
 		for (HotkeyVariant *vp = hk.mFirstVariant; vp; vp = vp->mNextVariant)
-			if (!vp->mHotCriterion && vp->mEnabled && (!g_IsSuspended || vp->mJumpToLabel->IsExemptFromSuspend()))
+			if (!vp->mHotCriterion && vp->mEnabled && (!g_IsSuspended /*|| vp->mJumpToLabel->IsExemptFromSuspend()*/))
 			{
 				// Fix for v1.0.47.02: The following section (above "return") was moved into this block
 				// from above the for() because only when this for() returns is it certain that this
@@ -861,9 +860,10 @@ void Hotkey::PerformInNewThreadMadeByCaller(HotkeyVariant &aVariant)
 		Unregister(); // This takes care of other details for us.
 	++aVariant.mExistingThreads;  // This is the thread count for this particular hotkey only.
 	ResultType result;
-	DEBUGGER_STACK_PUSH(aVariant.mJumpToLabel->mJumpToLine, g_script.mThisHotkeyName)
-	result = aVariant.mJumpToLabel->Execute();
-	DEBUGGER_STACK_POP()
+	//DEBUGGER_STACK_PUSH(aVariant.mJumpToLabel->mJumpToLine, g_script.mThisHotkeyName)
+	//result = aVariant.mJumpToLabel->Execute();
+	//TODO: callback here
+	//DEBUGGER_STACK_POP()
 	--aVariant.mExistingThreads;
 	if (unregistered_during_thread)
 		Register();
@@ -899,6 +899,8 @@ ResultType Hotkey::Dynamic(LPTSTR aHotkeyName, LPTSTR aLabelName, LPTSTR aOption
 // Creates, updates, enables, or disables a hotkey dynamically (while the script is running).
 // Returns OK or FAIL.
 {
+	//TODO: callback to API for dynamic hotkeys
+	/*
 	if (!_tcsnicmp(aHotkeyName, _T("IfWin"), 5)) // Seems reasonable to assume that anything starting with "IfWin" can't be the name of a hotkey.
 	{
 		HotCriterionType hot_criterion;
@@ -908,14 +910,14 @@ ResultType Hotkey::Dynamic(LPTSTR aHotkeyName, LPTSTR aLabelName, LPTSTR aOption
 		else if (!_tcsicmp(aHotkeyName + (invert ? 8 : 5), _T("Exist")))
 			hot_criterion = invert ? HOT_IF_NOT_EXIST : HOT_IF_EXIST;
 		else // It starts with IfWin but isn't Active or Exist: Don't alter the current criterion.
-			return g_script.SetErrorLevelOrThrow();
+			return g_script.ThrowError();
 		if (!(*aLabelName || *aOptions)) // This check is done only after detecting bad spelling of IfWin above.
 			g_HotCriterion = HOT_NO_CRITERION;
 		else if (SetGlobalHotTitleText(aLabelName, aOptions)) // Currently, it only fails upon out-of-memory.
 			g_HotCriterion = hot_criterion; // Only set at the last minute so that previous criteria will stay in effect if it fails.
 		else
-			return g_script.SetErrorLevelOrThrow();
-		return g_ErrorLevel->Assign(ERRORLEVEL_NONE); // Indicate success.
+			return g_script.ThrowError();
+		//return g_ErrorLevel->Assign(ERRORLEVEL_NONE); // Indicate success.
 	}
 
 	// L4: Allow "Hotkey, If, exact-expression-text" to reference existing #if expressions.
@@ -923,7 +925,7 @@ ResultType Hotkey::Dynamic(LPTSTR aHotkeyName, LPTSTR aLabelName, LPTSTR aOption
 	{
 		if (*aOptions)
 		{	// Let the script know of this error since it may indicate an unescaped comma in the expression text.
-			return g_script.SetErrorLevelOrThrow();
+			return g_script.ThrowError();
 		}
 		if (!*aLabelName)
 		{
@@ -948,7 +950,7 @@ ResultType Hotkey::Dynamic(LPTSTR aHotkeyName, LPTSTR aLabelName, LPTSTR aOption
 		}
 		return g_ErrorLevel->Assign(ERRORLEVEL_NONE);
 	}
-
+	*/
 	// For maintainability (and script readability), don't support "U" as a substitute for "UseErrorLevel",
 	// since future options might contain the letter U as a "parameter" that immediately follows an option-letter.
 	bool use_errorlevel = tcscasestr(aOptions, _T("UseErrorLevel"));
@@ -1538,10 +1540,7 @@ Hotkey::Hotkey(HotkeyIDType aID, Label *aJumpToLabel, HookActionType aHookAction
 	if (   !(mName = aName ? SimpleHeap::Malloc(aName) : hotkey_name)
 		|| !(AddVariant(aJumpToLabel, aSuffixHasTilde))   ) // Too rare to worry about freeing the other if only one fails.
 	{
-		if (aUseErrorLevel)
-			g_ErrorLevel->Assign(HOTKEY_EL_MEM);
-		else
-			g_script.ScriptError(ERR_OUTOFMEM);
+		g_script.ThrowError(_T("Out of memory"));
 		return;
 	}
 	// Above has ensured that both mFirstVariant and mLastVariant are non-NULL, so callers can rely on that.

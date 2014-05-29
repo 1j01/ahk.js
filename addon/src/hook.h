@@ -226,7 +226,7 @@ struct KeyHistoryItem
 	// out of space (perhaps due to the target window changing frequently), window logging would
 	// no longer be possible without adding complexity to the logging function.  Seems best
 	// to keep it simple:
-#define KEY_HISTORY_WINDOW_TITLE_SIZE 100
+	#define KEY_HISTORY_WINDOW_TITLE_SIZE 100
 	TCHAR target_window[KEY_HISTORY_WINDOW_TITLE_SIZE];
 };
 

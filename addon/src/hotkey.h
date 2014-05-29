@@ -18,8 +18,27 @@ GNU General Public License for more details.
 #define hotkey_h
 
 #include "keyboard_mouse.h"
-#include "script.h"  // For which label (and in turn which line) in the script to jump to.
-EXTERN_SCRIPT;  // For g_script.
+#include "stdafx.h" // pre-compiled headers
+#include "defines.h"
+#include "SimpleHeap.h" // for overloaded new/delete operators.
+#include "Util.h" // for FileTimeToYYYYMMDD(), strlcpy()
+
+
+// Note that currently this value must fit into a sc_type variable because that is how TextToKey()
+// stores it in the hotkey class.  sc_type is currently a UINT, and will always be at least a
+// WORD in size, so it shouldn't be much of an issue:
+#define MAX_JOYSTICKS 16  // The maximum allowed by any Windows operating system.
+#define MAX_JOY_BUTTONS 32 // Also the max that Windows supports.
+enum JoyControls {JOYCTRL_INVALID, JOYCTRL_XPOS, JOYCTRL_YPOS, JOYCTRL_ZPOS
+, JOYCTRL_RPOS, JOYCTRL_UPOS, JOYCTRL_VPOS, JOYCTRL_POV
+, JOYCTRL_NAME, JOYCTRL_BUTTONS, JOYCTRL_AXES, JOYCTRL_INFO
+, JOYCTRL_1, JOYCTRL_2, JOYCTRL_3, JOYCTRL_4, JOYCTRL_5, JOYCTRL_6, JOYCTRL_7, JOYCTRL_8  // Buttons.
+, JOYCTRL_9, JOYCTRL_10, JOYCTRL_11, JOYCTRL_12, JOYCTRL_13, JOYCTRL_14, JOYCTRL_15, JOYCTRL_16
+, JOYCTRL_17, JOYCTRL_18, JOYCTRL_19, JOYCTRL_20, JOYCTRL_21, JOYCTRL_22, JOYCTRL_23, JOYCTRL_24
+, JOYCTRL_25, JOYCTRL_26, JOYCTRL_27, JOYCTRL_28, JOYCTRL_29, JOYCTRL_30, JOYCTRL_31, JOYCTRL_32
+, JOYCTRL_BUTTON_MAX = JOYCTRL_32
+};
+#define IS_JOYSTICK_BUTTON(joy) (joy >= JOYCTRL_1 && joy <= JOYCTRL_BUTTON_MAX)
 
 // Due to control/alt/shift modifiers, quite a lot of hotkey combinations are possible, so support any
 // conceivable use.  Note: Increasing this value will increase the memory required (i.e. any arrays
@@ -76,7 +95,7 @@ struct HotkeyCriterion
 
 struct HotkeyVariant
 {
-	Label *mJumpToLabel;
+	//REMOVE Label *mJumpToLabel;
 	DWORD mRunAgainTime;
 	LPTSTR mHotWinTitle, mHotWinText;
 	int mHotExprIndex; // L4: g_HotExprLines index of the expression which controls whether this variant may activate.
@@ -249,19 +268,20 @@ public:
 		// the number of currently active threads drops below the max.  But doing such
 		// might make "infinite key loops" harder to catch because the rate of incoming hotkeys
 		// would be slowed down to prevent the subroutines from running concurrently:
-		return aVariant.mExistingThreads < aVariant.mMaxThreads
-			|| (ACT_IS_ALWAYS_ALLOWED(aVariant.mJumpToLabel->mJumpToLine->mActionType)); // See below.
+		// DIASABLED return aVariant.mExistingThreads < aVariant.mMaxThreads
+		// DIASABLED 	|| (ACT_IS_ALWAYS_ALLOWED(aVariant.mJumpToLabel->mJumpToLine->mActionType)); // See below.
 		// Although our caller may have already called ACT_IS_ALWAYS_ALLOWED(), it was for a different reason.
 	}
 
 	bool IsExemptFromSuspend() // A hotkey is considered exempt if even one of its variants is exempt.
 	{
+		/*DISABLE
 		// It's the caller's responsibility to check vp->mEnabled; that isn't done here.
 		if (mHookAction) // An alt-tab hotkey (which overrides all its variants) is never exempt.
 			return false;
 		for (HotkeyVariant *vp = mFirstVariant; vp; vp = vp->mNextVariant)
 			if (vp->mJumpToLabel->IsExemptFromSuspend()) // If it has no label, it's never exempt.
-				return true; // Even a single exempt variant makes the entire hotkey exempt.
+				return true; // Even a single exempt variant makes the entire hotkey exempt.*/
 		// Otherwise, since the above didn't find any exempt variants, the entire hotkey is non-exempt:
 		return false;
 	}
@@ -341,7 +361,7 @@ public:
 	static HotstringIDType sHotstringCountMax;
 	static bool mAtLeastOneEnabled; // v1.0.44.08: For performance, such as avoiding calling ToAsciiEx() in the hook.
 
-	Label *mJumpToLabel;
+	//Label *mJumpToLabel;
 	LPTSTR mString, mReplacement, mHotWinTitle, mHotWinText;
 	int mPriority, mKeyDelay;
 	int mHotExprIndex; // L4: g_HotExprLines index of the expression which controls whether this hotstring may activate.

@@ -13,13 +13,15 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
+#ifdef YOU_REAAAAALLLY_NEED_APPLICATION_CPP
+#define I_MEAN_CMON
 
 #include "stdafx.h" // pre-compiled headers
 #include "application.h"
 #include "globaldata.h" // for access to g_clip, the "g" global struct, etc.
 #include "window.h" // for several MsgBox and window functions
 #include "util.h" // for strlcpy()
-#include "resources/resource.h"  // For ID_TRAY_OPEN.
+//#include "resources/resource.h"  // For ID_TRAY_OPEN.
 
 
 bool MsgSleep(int aSleepDuration, MessageMode aMode)
@@ -2211,3 +2213,5 @@ VOID CALLBACK RefreshInterruptibility(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DW
 {
 	IsInterruptible(); // Search on RefreshInterruptibility for comments.
 }
+
+#endif

@@ -40,7 +40,9 @@ GNU General Public License for more details.
 // UPDATE v1.1.10.00: Using 0x0600 for Vista/7/8's audio APIs.
 // UPDATE v1.1.10.01: Using 0x0600 broke Process Close and who knows what else on Win XP.
 // Instead, use 0x0501 and redefine it to 0x0600 only for the specific APIs which we need.
+#undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501
+#undef _WIN32_IE
 #define _WIN32_IE 0x0501  // Added for v1.0.35 to have MCS_NOTODAY resolve as expected, and possibly solve other problems on newer systems.
 
 #ifdef _MSC_VER

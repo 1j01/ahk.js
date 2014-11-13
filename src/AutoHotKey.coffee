@@ -1,26 +1,31 @@
 
 {EventEmitter} = require 'events'
 {pollution, parseHotKey, parseInputString, casey, dump} = require './pollution'
+{parse_timespan} = require './helpers'
 
 casey class AutoHotKey extends EventEmitter
 	
 	constructor: ->
 		@on "newListener", (event, listener)->
-			return if event is "newListener" or event is "removeListener"
-			# tell the addon to add a hotkey hook
+			# Ignore EventEmitter's meta listeners
+			return if event in ["newListener", "removeListener"]
+			
+			# @TODO: tell the addon to add a hotkey hook
 			console.log "new listener for #{event}, (this should add keyboard hook)"
 	
 		@on "removeListener", (event, listener)->
-			return if event is "newListener" or event is "removeListener"
-			# tell the addon to remove a hotkey hook
+			# Ignore EventEmitter's meta listeners
+			return if event in ["newListener", "removeListener"]
+			
+			# @TODO: tell the addon to remove a hotkey hook
 			console.log "remove listener for #{event}, (this should remove keyboard hook)"
 
 	
 	pollute: (namespace = global)->
-		# Pollute the global namespace (or another) with hundreds of Key Names and Functions
-		
+		# Pollute the namespace with hundreds of Key Names
 		dump pollution, namespace
 		
+		# Pollute the namespace with AutoHotKey methods (tied to this instance)
 		for k of AutoHotKey::
 			do (k)=>
 				global[k] = (args...)=>
@@ -39,58 +44,52 @@ casey class AutoHotKey extends EventEmitter
 		console.log "Send global click at #{screen_x}, #{screen_y}"
 	
 	send: (str)->
-		str = String str
-		console.log parseInputString str
+		console.log "Send: #{str}"
+		#str = String str
+		#console.log parseInputString(str).toString()
 	
 	# Script Helpers
 	
 	print: console.log
 	#require: require # this doesn't work, it just breaks require
 	
-	after: (ms, cb)-> setTimeout(cb, ms)
+	after: (timespan, callback)->
+		ms = parse_timespan(timespan)
+		stop = -> clearTimeout(tid)
+		fn = -> callback(stop)
+		tid = setTimeout(fn, ms)
+		return stop
 	
-	every: (args...)->
-		t = parseFloat args[0]
-		if typeof args[0] is "number"
-			ms = t
-		else
-			unit = /^[\.\d]+\s*(\w*)$/.exec(args[0])?[1]
-			ms = switch unit
-				when 'ms', ''
-					t*1
-				when 's', 'sec'
-					t*1000
-				when 'min'
-					t*1000*60
-				else
-					if unit
-						throw new Error "Unsupported timespan format: '#{unit}'"
-					else
-						throw new Error "Invalid timespan format: '#{args[0]}'"
-			
-		cb = args[args.length-1]
+	every: (timespan, more_args...)->
+		ms = parse_timespan(timespan)
 		
-		if args.length is 3
-			
-			if /^\d+\s*times$/.test(args[1])
-				times = parseInt(args[1])
+		switch more_args.length
+			when 1
+				callback = more_args[0]
+				stop = -> clearInterval(iid)
+				fn = -> callback(stop)
+				iid = setInterval(fn, ms)
+			when 2
+				times = more_args[0]
+				if typeof times isnt "number"
+					if /^\d+\s*times$/.test(more_args[0])
+						times = parseInt(more_args[0])
+					else
+						throw new Error "Invalid argument to Every"
+				
+				callback = more_args[1]
+				stop = -> clearInterval(iid)
+				fn = ->
+					if --times < 0
+						stop()
+					else
+						callback(stop)
+				
+				iid = setInterval(fn, ms)
 			else
-				throw new Error "Invalid argument to ahk.every (Every)"
-			
-			fn = ->
-				if --times < 0
-					clearInterval(iid)
-				else
-					cb()
-			
-			iid = setInterval(fn, ms)
-			
-		else if args.length is 2
-			
-			setInterval(cb, ms)
-			
-		else
-			throw new Error 'Wrong number of arguments to ahk.every (Every)'
+				throw new Error "Wrong number of arguments to Every"
+		
+		return stop
 
 
 module.exports = new AutoHotKey()

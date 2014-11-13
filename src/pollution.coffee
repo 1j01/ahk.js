@@ -5,6 +5,7 @@ MODE_TEXT = String.fromCharCode 15 # Shift In
 
 modifiers = ["Ctrl", "Shift", "Alt", "Win"]
 
+# @TODO: quote all of these for consistency
 keys =
 	Backspace: 8
 	Tab: 9
@@ -146,9 +147,11 @@ for m in modifiers
 	pollution[m] = m + "+"
 
 for k of keys
+	# @FIXME
 	pollution[k] = MODE_KEYS + (pollution[k] ? k) + MODE_TEXT
 
 parseHotKey = (str)->
+	# @FIXME
 	modifiers = []
 	str = str.replace MODE_KEYS, "" # ought to replace all
 	str = str.replace MODE_TEXT, "" # might run into problems
@@ -162,6 +165,7 @@ parseHotKey = (str)->
 	{key, keycode, modifiers}
 
 parseInputString = (str)->
+	# @FIXME
 	str = str.replace("+" + MODE_TEXT + MODE_KEYS, "+")
 	segments = []
 	
@@ -200,7 +204,7 @@ parseInputString = (str)->
 
 casey = (c)->
 	# Make a class somewhat loosely cased
-	# The class's properties should be camelCased
+	# The class's properties should be defined in camelCase
 	for key, val of c::
 		# UpperCamelCase
 		c::[key[0].toUpperCase() + key.slice(1)] = val

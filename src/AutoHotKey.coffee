@@ -1,7 +1,6 @@
 
 {EventEmitter} = require 'events'
 {pollution, parseHotKey, parseInputString, casey, dump} = require './pollution'
-{parse_timespan} = require './helpers'
 
 casey class AutoHotKey extends EventEmitter
 	
@@ -11,15 +10,15 @@ casey class AutoHotKey extends EventEmitter
 			return if event in ["newListener", "removeListener"]
 			
 			# @TODO: tell the addon to add a hotkey hook
-			console.log "new listener for #{event}, (this should add keyboard hook)"
+			console.log "new listener for #{event} (this should add keyboard hook)"
 	
 		@on "removeListener", (event, listener)->
 			# Ignore EventEmitter's meta listeners
 			return if event in ["newListener", "removeListener"]
 			
 			# @TODO: tell the addon to remove a hotkey hook
-			console.log "remove listener for #{event}, (this should remove keyboard hook)"
-
+			console.log "remove listener for #{event} (this should remove keyboard hook)"
+	
 	
 	pollute: (namespace = global)->
 		# Pollute the namespace with hundreds of Key Names
@@ -30,12 +29,13 @@ casey class AutoHotKey extends EventEmitter
 			do (k)=>
 				global[k] = (args...)=>
 					@[k](args...)
-			
-		# the above as a legit one-liner:
-		# (global[k] = do (k)=> (args...)=> @[k](args...)) for k of AutoHotKey::
-		
-		# extra-legit one-liner:
-		# (global[k]=do(k)=>(a...)=>@[k](a...))for k of @::
+	
+	
+	# Include Script Helpers
+	AutoHotKey::[k] = v for k, v of require './script-helpers'
+	
+	
+	# Methods that act globally
 	
 	click: (screen_x, screen_y)->
 		# Send click in absolute screen coordinates
@@ -48,48 +48,7 @@ casey class AutoHotKey extends EventEmitter
 		#str = String str
 		#console.log parseInputString(str).toString()
 	
-	# Script Helpers
 	
-	print: console.log
-	#require: require # this doesn't work, it just breaks require
-	
-	after: (timespan, callback)->
-		ms = parse_timespan(timespan)
-		stop = -> clearTimeout(tid)
-		fn = -> callback(stop)
-		tid = setTimeout(fn, ms)
-		return stop
-	
-	every: (timespan, more_args...)->
-		ms = parse_timespan(timespan)
-		
-		switch more_args.length
-			when 1
-				callback = more_args[0]
-				stop = -> clearInterval(iid)
-				fn = -> callback(stop)
-				iid = setInterval(fn, ms)
-			when 2
-				times = more_args[0]
-				if typeof times isnt "number"
-					if /^\d+\s*times$/.test(more_args[0])
-						times = parseInt(more_args[0])
-					else
-						throw new Error "Invalid argument to Every"
-				
-				callback = more_args[1]
-				stop = -> clearInterval(iid)
-				fn = ->
-					if --times < 0
-						stop()
-					else
-						callback(stop)
-				
-				iid = setInterval(fn, ms)
-			else
-				throw new Error "Wrong number of arguments to Every"
-		
-		return stop
 
 
 module.exports = new AutoHotKey()

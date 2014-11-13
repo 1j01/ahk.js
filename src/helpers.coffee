@@ -1,35 +1,4 @@
 
-test_parse_timespan = (timespan)->
-	console.log "parse timespan #{JSON.stringify(timespan)}"
-	console.log "=> #{parse_timespan(timespan) (milliseconds)}"
-
-exports.parse_timespan = (timespan)->
-	if typeof timespan is "number"
-		ms = timespan
-	else
-		n = parseFloat timespan
-		
-		match = /\d\s*([a-z]+)$/i.exec(timespan)
-		unit = match?[1]
-		
-		ms = switch unit
-			when 'ms'
-				n*1
-			when 's', 'sec'
-				n*1000
-			when 'min'
-				n*1000*60
-			else
-				if unit
-					if unit is unit.toLowerCase()
-						throw new Error "Unsupported timespan format: '#{unit}'"
-					else
-						throw new Error "Unsupported timespan format: '#{unit}' (unit must be lowercase)"
-				else
-					throw new Error "Invalid timespan format: '#{timespan}'"
-	return ms
-
-
 # This file contains the common helper functions that we'd like to share among
 # the **Lexer**, **Rewriter**, and the **Nodes**. Merge objects, flatten
 # arrays, count characters, that sort of thing.

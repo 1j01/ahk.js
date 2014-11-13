@@ -13,7 +13,7 @@ ahk.on "Ctrl+Win+H", ->
 	hidden.pop()?.show()
 
 # if tray functionality is a thing
-ahk.tray ->
+ahk.tray? ->
 	hidden.map (win)->
 		name: win.getName()
 		click: ->

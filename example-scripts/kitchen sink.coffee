@@ -38,13 +38,13 @@ ahk.hotkey 'Ctrl+Shift+Enter', ->
 ahk.pollute()
 
 On Ctrl+Shift+B, ->
-	Send("Blub blub blub....")
+	Send "Blub blub blub...."
 # or
 HotKey Ctrl+Shift+Enter, ->
-	Send("lib lub loblab libibl\n")
+	Send "lib lub loblab libibl\n"
 # or
 HotKey [Ctrl+Shift+Enter], ->
-	Send("lib lub loblab libibl\n")
+	Send "lib lub loblab libibl\n"
 # or
 On [Ctrl+Shift+Enter], ->
-	Send("lib lub loblab libibl\n")
+	Send "lib lub loblab libibl\n"

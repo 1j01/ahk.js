@@ -1,6 +1,6 @@
 
 {EventEmitter} = require 'events'
-{pollution, parseHotKey, casey, dump} = require './pollution'
+{pollution, parseHotKey, parseInputString, casey, dump} = require './pollution'
 
 casey class AutoHotKey extends EventEmitter
 	
@@ -40,12 +40,12 @@ casey class AutoHotKey extends EventEmitter
 	
 	send: (str)->
 		str = String str
-		console.log "Send global input", '['+str+']'
+		console.log parseInputString str
 	
 	# Script Helpers
 	
 	print: console.log
-	require: require
+	#require: require # this doesn't work, it just breaks require
 	
 	after: (ms, cb)-> setTimeout(cb, ms)
 	

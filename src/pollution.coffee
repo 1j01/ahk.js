@@ -1,4 +1,8 @@
 
+
+MODE_KEYS = String.fromCharCode 14 # Shift Out
+MODE_TEXT = String.fromCharCode 15 # Shift In
+
 modifiers = ["Ctrl", "Shift", "Alt", "Win"]
 
 keys =
@@ -137,15 +141,17 @@ for n in [0..9]
 
 
 pollution = {}
+
 for m in modifiers
 	pollution[m] = m + "+"
 
 for k of keys
-	#pollution[k] ?= keys[k]
-	pollution[k] ?= k
+	pollution[k] = MODE_KEYS + (pollution[k] ? k) + MODE_TEXT
 
 parseHotKey = (str)->
 	modifiers = []
+	str = str.replace MODE_KEYS, "" # ought to replace all
+	str = str.replace MODE_TEXT, "" # might run into problems
 	str = str.replace /\+$/g, ""
 	key = str.replace /(Ctrl|Shift|Alt|Win)\+/g, (match)->
 		modifier_key = match.slice(0, -1) # chop off the +
@@ -155,6 +161,42 @@ parseHotKey = (str)->
 	
 	{key, keycode, modifiers}
 
+parseInputString = (str)->
+	str = str.replace("+" + MODE_TEXT + MODE_KEYS, "+")
+	segments = []
+	
+	keys_mode = no
+	keys = ""
+	text = ""
+	for c in str
+		if c is MODE_TEXT
+			keys.mode = "keys"
+			segments.push keys
+			keys = ""
+			keys_mode = no
+		else if c is MODE_KEYS
+			text.mode = "text"
+			segments.push text
+			text = ""
+			keys_mode = yes
+		else
+			if keys_mode
+				keys += c
+			else
+				text += c
+	
+	segments.toString = ->
+		s = ""
+		for s in @
+			s +=
+				if text.mode is "keys"
+					"Perform Key Combination: #{s}"
+				else
+					"Send Text String: #{s}"
+			s += '\n'
+		s
+	
+	segments
 
 casey = (c)->
 	# Make a class somewhat loosely cased
@@ -171,4 +213,4 @@ dump = (pollution, namespace = global)->
 		namespace[k] = pollution[k]
 
 
-module.exports = {pollution, keys, modifiers, parseHotKey, dump, casey}
+module.exports = {pollution, keys, modifiers, parseHotKey, parseInputString, dump, casey}

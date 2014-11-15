@@ -1,30 +1,37 @@
 
-{findWindow, findWindows} = ahk = require 'ahk'
+ahk = require 'ahk' # AutoHotKey
+$ = require 'ahq' # AutoHotQuery
 
-findWindow title: /...Kongregate - Google Chrome/, (win)->
+# Pollute the global namespace with hundreds of key names and functions
+ahk.pollute()
+
+
+$(/Kongregate - Google Chrome/).each (win)->
 	win.minimize()
 	win.focus()
 	win.maximize()
 	win.setStyle(idk)
-	{x, y, w, h} = win.position()
-	win.position(x, y, [w, h])
+	{x, y} = win.position()
+	win.position(x, y)
 	{w, h} = win.size()
 	win.size(w, h)
 	win.click(x, y)
 	win.hide()
 	win.close()
 
-findWindow /Skype/, (s)->
+$(/Skype/).each (s)->
 	s.kill()
 
 
-# The "global" ahk.click clicks in absolute screen coordinates
 
-rand = (x)-> Math.random() * x
-clickRandomly = ->
-	ahk.click rand(ahk.screenWidth), rand(ahk.screenHeight)
+ClickRandomly = ->
+	# The global click function clicks in absolute screen coordinates
+	Click Random(ScreenWidth), Random(ScreenHeight)
+	# The above is equivalent to using methods and properties of the screen
+	Screen.Click Random(Screen.Width), Random(Screen.Height)
+	# Maybe
 
-ahk.every "0.5s", clickRandomly
+Every "0.5s", ClickRandomly
 
 
 # Hotkeys
@@ -36,9 +43,6 @@ ahk.hotkey 'Ctrl+Shift+Enter', ->
 	ahk.send "lib lub loblab libibl\n"
 
 # or....
-
-# Pollute the global namespace with hundreds of Key Names and Functions
-ahk.pollute()
 
 On Ctrl+Shift+B, ->
 	Send "Blub blub blub...."

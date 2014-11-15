@@ -1,12 +1,12 @@
 {
 	"name": "ahk",
 	"version": "0.0.0",
-	"description": "AutoHotKey as a native node module",
+	"description": "AutoHotKey in Node.js",
 	"keywords": [
-		"AutoHotKey",
+		"AutoHotKey", "autohotkey", "ahk",
 		"automation", "hotkeys",
 		"shortcuts", "scripting", "sendkeys",
-		"keyboard", "mouse", "windows"
+		"keyboard", "mouse", "windows", "desktop"
 	],
 	
 	"author": {
@@ -41,7 +41,7 @@
 		"prepublish": "coffee -o lib/ -c src/",
 		"watch": "coffee -w -o lib/ -c src/",
 		"test-pollution": "coffee test/test-pollution.coffee",
-		"test-send-input": "coffee test/test-send-input.coffee",
+		"test-script-helpers": "coffee test/test-script-helpers.coffee",
 		"test-hotkeys": "coffee test/test-hotkeys.coffee",
 		"addon.build": "node-gyp build",
 		"addon.rebuild": "node-gyp rebuild",

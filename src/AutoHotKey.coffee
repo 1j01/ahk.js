@@ -32,6 +32,7 @@ casey class AutoHotKey extends EventEmitter
 	
 	
 	# Include Script Helpers
+	
 	AutoHotKey::[k] = v for k, v of require './script-helpers'
 	
 	

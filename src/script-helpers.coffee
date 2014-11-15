@@ -14,18 +14,29 @@ parse_timespan = (timespan)->
 	if typeof timespan is "number"
 		ms = timespan
 	else
-		n = parseFloat timespan
+		switch timespan
+			when 'millisecond'
+				return 1
+			when 'second'
+				return 1000
+			when 'minute'
+				return 1000 * 60
+			when 'hour'
+				return 1000 * 60 * 60
 		
 		match = /\d\s*([a-z]+)$/i.exec(timespan)
 		unit = match?[1]
+		n = parseFloat timespan
 		
 		ms = switch unit
-			when 'ms', 'milliseconds'
+			when 'ms', 'milliseconds' # not 'millis'
 				n
 			when 's', 'sec', 'seconds'
 				n * 1000
-			when 'min', 'minutes'
+			when 'min', 'minutes' # not 'm'
 				n * 1000 * 60
+			when 'h', 'hr', 'hours'
+				n * 1000 * 60 * 60
 			else
 				if unit
 					if unit is unit.toLowerCase()

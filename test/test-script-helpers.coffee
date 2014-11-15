@@ -9,7 +9,7 @@ every 10, (stop)->
 		stop()
 
 times = 1
-Every '1000ms', (Stop)->
+Every 'second', (Stop)->
 	Print 'print this 7x!'
 	if times++ >= 7
 		Stop()
@@ -20,5 +20,5 @@ Every '100ms', '3 times', ->
 Every '2.4s', '3 times', ->
 	Print 'blablabla!!!!!!!111!11!1 every 2.4s, 3 times'
 
-After '5sec', ->
+After '5 seconds', ->
 	Print '(five seconds have passed)'

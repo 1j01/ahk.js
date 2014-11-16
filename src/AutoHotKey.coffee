@@ -1,6 +1,7 @@
 
 {EventEmitter} = require 'events'
-{pollution, parseHotKey, parseInputString, casey, dump} = require './pollution'
+{pollution, parseHotKey, parseInputString, dump} = require './pollution'
+{casey} = require './helpers'
 
 casey class AutoHotKey extends EventEmitter
 	
@@ -10,14 +11,14 @@ casey class AutoHotKey extends EventEmitter
 			return if event in ["newListener", "removeListener"]
 			
 			# @TODO: tell the addon to add a hotkey hook
-			console.log "new listener for #{event} (this should add keyboard hook)"
+			console.log "new listener for #{event} (this should add a keyboard hook)"
 	
 		@on "removeListener", (event, listener)->
 			# Ignore EventEmitter's meta listeners
 			return if event in ["newListener", "removeListener"]
 			
 			# @TODO: tell the addon to remove a hotkey hook
-			console.log "remove listener for #{event} (this should remove keyboard hook)"
+			console.log "remove listener for #{event} (this should remove a keyboard hook)"
 	
 	
 	pollute: (namespace = global)->
@@ -29,6 +30,8 @@ casey class AutoHotKey extends EventEmitter
 			do (k)=>
 				global[k] = (args...)=>
 					@[k](args...)
+		
+		@
 	
 	
 	# Include Script Helpers
@@ -43,11 +46,13 @@ casey class AutoHotKey extends EventEmitter
 		screen_x = Number screen_x
 		screen_y = Number screen_y
 		console.log "Send global click at #{screen_x}, #{screen_y}"
+		@
 	
 	send: (str)->
 		console.log "Send: #{str}"
 		#str = String str
 		#console.log parseInputString(str).toString()
+		@
 	
 	
 

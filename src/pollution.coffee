@@ -202,19 +202,10 @@ parseInputString = (str)->
 	
 	segments
 
-casey = (c)->
-	# Make a class somewhat loosely cased
-	# The class's properties should be defined in camelCase
-	for key, val of c::
-		# UpperCamelCase
-		c::[key[0].toUpperCase() + key.slice(1)] = val
-		# lowercase
-		c::[key.toLowerCase()] = val
-
 dump = (pollution, namespace = global)->
 	# Dump an object's properties into the global namespace (or another)
 	for k of pollution
 		namespace[k] = pollution[k]
 
 
-module.exports = {pollution, keys, modifiers, parseHotKey, parseInputString, dump, casey}
+module.exports = {pollution, keys, modifiers, parseHotKey, parseInputString, dump}

@@ -1,7 +1,7 @@
 
 
-MODE_KEYS = String.fromCharCode 14 # Shift Out
-MODE_TEXT = String.fromCharCode 15 # Shift In
+KEY_START = String.fromCharCode 14 # ASCII Shift Out
+KEY_END = String.fromCharCode 15 # ASCII Shift In
 
 modifiers = ["Ctrl", "Shift", "Alt", "Win"]
 
@@ -148,13 +148,13 @@ for m in modifiers
 
 for k of keys
 	# @FIXME
-	pollution[k] = MODE_KEYS + (pollution[k] ? k) + MODE_TEXT
+	pollution[k] = KEY_START + (pollution[k] ? k) + KEY_END
 
 parseHotKey = (str)->
 	# @FIXME
 	modifiers = []
-	str = str.replace MODE_KEYS, "" # ought to replace all
-	str = str.replace MODE_TEXT, "" # might run into problems
+	str = str.replace KEY_START, "" # ought to replace all
+	str = str.replace KEY_END, "" # might run into problems
 	str = str.replace /\+$/g, ""
 	key = str.replace /(Ctrl|Shift|Alt|Win)\+/g, (match)->
 		modifier_key = match.slice(0, -1) # chop off the +
@@ -166,19 +166,19 @@ parseHotKey = (str)->
 
 parseInputString = (str)->
 	# @FIXME
-	str = str.replace("+" + MODE_TEXT + MODE_KEYS, "+")
+	str = str.replace("+" + KEY_END + KEY_START, "+")
 	segments = []
 	
 	keys_mode = no
 	keys = ""
 	text = ""
 	for c in str
-		if c is MODE_TEXT
+		if c is KEY_END
 			keys.mode = "keys"
 			segments.push keys
 			keys = ""
 			keys_mode = no
-		else if c is MODE_KEYS
+		else if c is KEY_START
 			text.mode = "text"
 			segments.push text
 			text = ""

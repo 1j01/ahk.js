@@ -49,9 +49,9 @@ casey class AutoHotKey extends EventEmitter
 		@
 	
 	send: (str)->
-		console.log "Send: #{str}"
-		#str = String str
-		#console.log parseInputString(str).toString()
+		#console.log "Send: #{str}"
+		str = String str
+		console.log parseInputString(str).toString()
 		@
 	
 	
